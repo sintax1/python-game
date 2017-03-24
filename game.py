@@ -18,6 +18,18 @@ class colors:
     ENDC = '\033[0m'
 
 class _Getch:
+    """Gets a single character from standard input.  Does not echo to the
+screen."""
+    def __init__(self):
+        try:
+            self.impl = _GetchWindows()
+        except ImportError:
+            self.impl = _GetchUnix()
+
+    def __call__(self): return self.impl()
+
+
+class _GetchUnix:
     def __init__(self):
         import tty, sys
 
@@ -31,6 +43,18 @@ class _Getch:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
+
+
+class _GetchWindows:
+    def __init__(self):
+        import msvcrt
+
+    def __call__(self):
+        import msvcrt
+        return msvcrt.getch()
+
+
+getch = _Getch()
 
 def has_player_won():
     for player in players:
@@ -124,10 +148,8 @@ if __name__=="__main__":
 
     display()
 
-    inkey = _Getch()
-
     while True:
-        k = ord(inkey())
+        k = ord(getch())
 
         if k == 3:
             break
