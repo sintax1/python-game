@@ -8,10 +8,11 @@ SIZE            = 50
 BLOCKS          = (SIZE * SIZE) / 10
 PLAYERS         = 2
 
-DOWN            = 0
-UP              = 1
-LEFT            = 2
-RIGHT           = 3
+class directions:
+    DOWN            = 0
+    UP              = 1
+    LEFT            = 2
+    RIGHT           = 3
 
 players         = []
 goal            = [random.randint(0,SIZE-1), random.randint(0,SIZE-1)]
@@ -22,6 +23,26 @@ class colors:
     PLAYER      = '\033[34m'
     GOAL        = '\033[91m'
     ENDC        = '\033[0m'
+    
+def has_player_won():
+    for player in players:
+        if player['x'] == goal[0] and player['y'] == goal[1]:
+            return player['id']
+    return None
+
+def get_player_by_location(location):#print players
+    player_found = None;
+    
+    for player in players:
+        if player['x'] == location[0] and player['y'] == location[1]:
+            return player
+    return None
+            
+def get_player_by_id(player_id):
+    for player in players:
+        if player['id'] == player_id:
+            return player
+    return None
 
 ###############################################################################
 # pulled from http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
@@ -63,25 +84,65 @@ class _GetchWindows:
 getch = _Getch()
 ###############################################################################
 
-def has_player_won():
-    for player in players:
-        if player['x'] == goal[0] and player['y'] == goal[1]:
-            return player['id']
-        return None
+def moveLeft(player_id):
+    movePlayerAlongX(player_id, directions.LEFT)
 
-def get_player_by_location(location):#print players
-    player_found = None;
+def moveRight(player_id):
+    movePlayerAlongX(player_id, directions.RIGHT)
+
+def moveUp(player_id):
+    movePlayerAlongY(player_id, directions.UP)
+
+def moveDown(player_id):
+    movePlayerAlongY(player_id, directions.DOWN)
+
+def movePlayerAlongX(player_id, direction):
+    player = get_player_by_id(player_id)
+    new_coords = getNewXCoords(player['x'], player['y'], direction)
+    player['x'] = new_coords[0]
+    player['y'] = new_coords[1]
     
-    for player in players:
-        if player['x'] == location[0] and player['y'] == location[1]:
-            return player
-    return None
-            
-def get_player_by_id(player_id):
-    for player in players:
-        if player['id'] == player_id:
-            return player
-        return None
+def movePlayerAlongY(player_id, direction):
+    player = get_player_by_id(player_id)
+    new_coords = getNewYCoords(player['x'], player['y'], direction)
+    player['x'] = new_coords[0]
+    player['y'] = new_coords[1]
+
+def getNewXCoords(curr_x, curr_y, direction):
+
+    # get proposed coords
+    new_x = curr_x
+    new_y = curr_y
+
+    if direction == directions.LEFT:
+        new_x = (curr_x - 1 if curr_x > 0 else curr_x)
+
+    elif direction == directions.RIGHT:
+        new_x = (curr_x + 1 if curr_x < SIZE-1 else curr_x)
+
+    # check for goal or block
+    if [new_x, new_y] != goal and [new_x,new_y] in blocks:
+        return [curr_x, curr_y]
+
+    return [new_x, new_y]
+    
+def getNewYCoords(curr_x, curr_y, direction):
+    
+    # get proposed coords
+    new_x = curr_x
+    new_y = curr_y
+    
+    if direction == directions.DOWN:
+        new_y = (curr_y + 1 if curr_y < SIZE-1 else curr_y)
+        
+    elif direction == directions.UP:
+        new_y = (curr_y - 1 if curr_y > 0 else curr_y)
+        
+    # check for goal or block
+    if [new_x, new_y] != goal and [new_x,new_y] in blocks:
+        return [curr_x, curr_y]
+    
+    return [new_x, new_y]
 
 def display():
     player_id = has_player_won()
@@ -107,70 +168,11 @@ def display():
         gameboard += "\n"
     os.system('clear') # moved this down here to further minimize redraw time
     print(gameboard)
-    
-def moveLeft(player_id):
-    movePlayerAlongX(player_id, LEFT)
-
-def moveRight(player_id):
-    movePlayerAlongX(player_id, RIGHT)
-
-def moveUp(player_id):
-    movePlayerAlongY(player_id, UP)
-
-def moveDown(player_id):
-    movePlayerAlongY(player_id, DOWN)
-
-def movePlayerAlongX(player_id, direction):
-    player = get_player_by_id(player_id)
-    new_coords = getNewXCoords(player['x'], player['y'], direction)
-    player['x'] = new_coords[0]
-    player['y'] = new_coords[1]
-    
-def movePlayerAlongY(player_id, direction):
-    player = get_player_by_id(player_id)
-    new_coords = getNewYCoords(player['x'], player['y'], direction)
-    player['x'] = new_coords[0]
-    player['y'] = new_coords[1]
-
-def getNewXCoords(curr_x, curr_y, direction):
-
-    # get proposed coords
-    new_x = curr_x
-    new_y = curr_y
-
-    if direction == LEFT:
-        new_x = (curr_x - 1 if curr_x > 0 else curr_x)
-
-    elif direction == RIGHT:
-        new_x = (curr_x + 1 if curr_x < SIZE-1 else curr_x)
-
-    # check for goal or block
-    if [new_x, new_y] != goal and [new_x,new_y] in blocks:
-        return [curr_x, curr_y]
-
-    return [new_x, new_y]
-    
-def getNewYCoords(curr_x, curr_y, direction):
-    
-    # get proposed coords
-    new_x = curr_x
-    new_y = curr_y
-    
-    if direction == DOWN:
-        new_y = (curr_y + 1 if curr_y < SIZE-1 else curr_y)
-        
-    elif direction == UP:
-        new_y = (curr_y - 1 if curr_y > 0 else curr_y)
-        
-    # check for goal or block
-    if [new_x, new_y] != goal and [new_x,new_y] in blocks:
-        return [curr_x, curr_y]
-    
-    return [new_x, new_y]
 
 if __name__=="__main__":
 
-    player_id = 1
+    player1_id = 1
+    player2_id = 2
 
     for i in range(1, PLAYERS+1):
         player = {"id": i, "name": "", "x": random.randint(0,SIZE-1), "y": random.randint(0,SIZE-1)}
@@ -181,8 +183,9 @@ if __name__=="__main__":
         y = random.randint(0,SIZE-1)
         if get_player_by_location([x,y]) == None:
             blocks.append([x,y])
-
-        
+    
+    #print players
+            
     while True:
 
         display()
@@ -192,11 +195,23 @@ if __name__=="__main__":
 
         if k == 3:                  # ctrl-c to quit
             break
+            
+        # player 1
         elif k == 119:              # w
-            moveUp(player_id)
+            moveUp(player1_id)
         elif k == 122:              # z
-            moveDown(player_id)
+            moveDown(player1_id)
         elif k == 115:              # s
-            moveRight(player_id)
+            moveRight(player1_id)
         elif k == 97:               # a
-            moveLeft(player_id)
+            moveLeft(player1_id)
+        
+        # player 2
+        elif k == 105:              # i
+            moveUp(player2_id)
+        elif k == 109:              # m
+            moveDown(player2_id)
+        elif k == 107:              # k
+            moveRight(player2_id)
+        elif k == 106:               # j
+            moveLeft(player2_id)
