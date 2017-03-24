@@ -4,19 +4,19 @@ import sys
 import os
 import random
 
-SIZE 			= 50
-BLOCKS 			= (SIZE * SIZE) / 10
-PLAYERS 		= 7
+SIZE            = 50
+BLOCKS          = (SIZE * SIZE) / 10
+PLAYERS         = 7
 
-players 		= []
-goal 			= [random.randint(0,SIZE-1), random.randint(0,SIZE-1)]
-blocks 			= []
+players         = []
+goal            = [random.randint(0,SIZE-1), random.randint(0,SIZE-1)]
+blocks          = []
 
 class colors:
-    BACKGROUND 	= '\033[0;47m'
-    PLAYER 		= '\033[34m'
-    GOAL 		= '\033[91m'
-    ENDC 		= '\033[0m'
+    BACKGROUND  = '\033[0;47m'
+    PLAYER      = '\033[34m'
+    GOAL        = '\033[91m'
+    ENDC        = '\033[0m'
 
 ###############################################################################
 # pulled from http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
@@ -55,7 +55,6 @@ class _GetchWindows:
         import msvcrt
         return msvcrt.getch()
 
-
 getch = _Getch()
 ###############################################################################
 
@@ -78,29 +77,29 @@ def get_player_by_id(player_id):
         return None
 
 def display():
-    print colors.ENDC
-    os.system('clear')
-
     player_id = has_player_won()
     if player_id != None:
+        os.system('clear')
         print "Congratulations Player %s! You win!" % player_id
         sys.exit()
 
+    gameboard = ""
     for y in range(SIZE):
-        sys.stdout.write("|")
+        gameboard += "|"
         for x in range(SIZE):
             player = get_player_by_location([x, y])
- 
             if player != None:
-                sys.stdout.write(colors.PLAYER + "%s" % player['id'] + colors.ENDC + "|" )
+                gameboard += colors.PLAYER + "%s" % player['id'] + colors.ENDC
             elif [x, y] == goal:
-                sys.stdout.write(colors.GOAL + "$" + colors.ENDC + "|")
+                gameboard += colors.GOAL + "$" + colors.ENDC
             elif [x, y] in blocks:
-                sys.stdout.write("#|")
+                gameboard += "#"
             else:
-                sys.stdout.write(" |")
-
-        sys.stdout.write("\n")
+                gameboard += " "
+            gameboard += "|"
+        gameboard += "\n"
+    os.system('clear')
+    print(gameboard)
 
 def moveUp(player_id):
     player = get_player_by_id(player_id)
@@ -151,12 +150,16 @@ if __name__=="__main__":
     	
     	display()
         
+        while(1):
+                i=getch()
+                if i!='':break
+                
         # blocking action
-        k = ord(getch())
+        k = ord(i)
 
-        if k == 3: 					# ctrl-c
+        if k == 3:                  # ctrl-c
             break
-        elif k == 65: 				# arrows
+        elif k == 65:               # arrows
             moveUp(player_id)
         elif k == 66:
             moveDown(player_id)
@@ -164,5 +167,3 @@ if __name__=="__main__":
             moveRight(player_id)
         elif k == 68:
             moveLeft(player_id)
-            
-        
