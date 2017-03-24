@@ -1,29 +1,49 @@
 #!/usr/bin/env python
 
+# A linux terminal game where two players (1) and (2) use the keyboard to 
+# race to the goal ($) and navigate around obstacles (#)
+#| | | | | | | |#| | | | | | | | | | | | | | | |#| |#| | | | | | | | | | | | | | | | | | | | | | | | |
+#| | | | | | | | | | | | |#| |#| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+#| | | | | | | | | | | | |#| | | | | | | | |#| | | | | |#| | | | | | | | | | | | | | | | | | | | | | |
+#| | | | | | |#| | | | | | | |#| | | | | | |#| | | | | | | | | | |2| | | | |#| | | | | | |#| | | | | |
+#| | | | | | |#| | | |#| | | | | | | | | | | | | | | |1| | | | | | | | | | | |#| | | | | | | | | | | |
+#| | | | | | | | | | | | | | | |#| | | | | | | | | | |#| | | | | | | | | | | | |#|#|#|#| | | | | |#| |
+#| | | | |#| | | | | | | |#| | | | | | | | |#| | | | | | | | | | | | | | | | |#| | | | | | | | | | | |
+#| | | | | | | | | | | | | | | |#| | | | | | | | | | |#| | | | |#| | | | | | | | | | | | |#| | | | | |
+#| | | | | | | | | | |#| | | | | | | | | | | | | | | | | | | |$|#| | | | | | | | | | | | | | | | | | |
+#| |#| | |#| |#| |#| | | |#| | | | | | | |#| | | | | | | | |#| | | | | | | | | | | | | | | | | | | | |
+#|#| | | | | | | | | | | | |#| | | | | | | | | | | | | | | | | | | | | | | | |#| | |#| | | | | | | | |
+#| | | | | | | | | | | | | | | | | | | | | | | | | |#| | | |#| | | | | | | | | 
+
 import sys
 import os
 import random
 
 SIZE            = 50
-BLOCKS          = (SIZE * SIZE) / 10
-PLAYERS         = 2
-
-class directions:
-    DOWN            = 0
-    UP              = 1
-    LEFT            = 2
-    RIGHT           = 3
+NUM_BLOCKS      = (SIZE * SIZE) / 10
+NUM_PLAYERS     = 2
+GOAL_SYMBOL     = '$'
+BLOCK_SYMBOL    = '#'
 
 players         = []
-goal            = [random.randint(0,SIZE-1), random.randint(0,SIZE-1)]
+goal            = []
 blocks          = []
+
+class directions:
+    DOWN        = 0
+    UP          = 1
+    LEFT        = 2
+    RIGHT       = 3
 
 class colors:
     BACKGROUND  = '\033[0;47m'
     PLAYER      = '\033[34m'
     GOAL        = '\033[91m'
     ENDC        = '\033[0m'
-    
+
+#----------------------#
+# GAME STATE FUNCTIONS #
+#----------------------#
 def has_player_won():
     for player in players:
         if player['x'] == goal[0] and player['y'] == goal[1]:
@@ -44,8 +64,12 @@ def get_player_by_id(player_id):
             return player
     return None
 
-###############################################################################
-# pulled from http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
+#--------------------------#
+# CAPTURING KEYBOARD INPUT #
+#--------------------------#
+
+# pulled from
+#http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
@@ -82,7 +106,10 @@ class _GetchWindows:
         return msvcrt.getch()
 
 getch = _Getch()
-###############################################################################
+
+#-------------------#
+# MOVING THE PLAYER #
+#-------------------#
 
 def moveLeft(player_id):
     movePlayerAlongX(player_id, directions.LEFT)
@@ -144,6 +171,9 @@ def getNewYCoords(curr_x, curr_y, direction):
     
     return [new_x, new_y]
 
+#-------------------------#
+# RENDERING THE GAMEBOARD #
+#-------------------------#
 def display():
     player_id = has_player_won()
     if player_id != None:
@@ -159,37 +189,53 @@ def display():
             if player != None:
                 gameboard += colors.PLAYER + "%s" % player['id'] + colors.ENDC
             elif [x, y] == goal:
-                gameboard += colors.GOAL + "$" + colors.ENDC
+                gameboard += colors.GOAL + GOAL_SYMBOL + colors.ENDC
             elif [x, y] in blocks:
-                gameboard += "#"
+                gameboard += BLOCK_SYMBOL
             else:
                 gameboard += " "
             gameboard += "|"
         gameboard += "\n"
     os.system('clear') # moved this down here to further minimize redraw time
-    print(gameboard)
+
+    print gameboard
 
 if __name__=="__main__":
 
+#------------#
+# GAME SETUP #
+#------------#
+
+    # setup players 
     player1_id = 1
     player2_id = 2
-
-    for i in range(1, PLAYERS+1):
+    for i in range(1, NUM_PLAYERS+1):
         player = {"id": i, "name": "", "x": random.randint(0,SIZE-1), "y": random.randint(0,SIZE-1)}
         players.append(player)
 
-    for i in range(BLOCKS):
+    # setup goal
+    goal = [random.randint(0,SIZE-1), random.randint(0,SIZE-1)]
+    
+    # setup blocks
+    for i in range(NUM_BLOCKS):
         x = random.randint(0,SIZE-1)
         y = random.randint(0,SIZE-1)
         if get_player_by_location([x,y]) == None:
             blocks.append([x,y])
-    
-    #print players
-            
+
+    print ( "Welcome to the game.\n"          
+            "Player one uses the 'w,a,s,z' keys.\n" 
+            "Player two uses the 'i,j,k,m' keys.\n"  
+            "First one to the '$' wins!\n"                   
+            "\n"                                    
+            "Press any key to begin...")
+
+#------------#
+# GAME LOOP #
+#------------#
+
     while True:
 
-        display()
-        
         # blocking action
         k = ord(getch())
 
@@ -214,4 +260,6 @@ if __name__=="__main__":
         elif k == 107:              # k
             moveRight(player2_id)
         elif k == 106:               # j
-            moveLeft(player2_id)
+            moveLeft(player2_id)\
+        
+        display()
