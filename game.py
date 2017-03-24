@@ -6,7 +6,12 @@ import random
 
 SIZE            = 50
 BLOCKS          = (SIZE * SIZE) / 10
-PLAYERS         = 7
+PLAYERS         = 2
+
+DOWN            = 0
+UP              = 1
+LEFT            = 2
+RIGHT           = 3
 
 players         = []
 goal            = [random.randint(0,SIZE-1), random.randint(0,SIZE-1)]
@@ -64,11 +69,13 @@ def has_player_won():
             return player['id']
         return None
 
-def get_player_by_location(location):
+def get_player_by_location(location):#print players
+    player_found = None;
+    
     for player in players:
         if player['x'] == location[0] and player['y'] == location[1]:
             return player
-        return None
+    return None
             
 def get_player_by_id(player_id):
     for player in players:
@@ -100,42 +107,73 @@ def display():
         gameboard += "\n"
     os.system('clear') # moved this down here to further minimize redraw time
     print(gameboard)
-
-def moveUp(player_id):
-    player = get_player_by_id(player_id)
-    y = player['y']
-    player['y'] = (y - 1 if y > 0 else y)
-    if [player['x'],player['y']] in blocks:
-        player['y'] = y
-
-def moveDown(player_id):
-    player = get_player_by_id(player_id)
-    y = player['y']
-    player['y'] = (y + 1 if y < SIZE-1 else y)
-    if [player['x'],player['y']] in blocks:
-        player['y'] = y
-
+    
 def moveLeft(player_id):
-    player = get_player_by_id(player_id)
-    x = player['x']
-    player['x'] = (x - 1 if x > 0 else x)
-    if [player['x'],player['y']] in blocks:
-        player['x'] = x
+    movePlayerAlongX(player_id, LEFT)
 
 def moveRight(player_id):
+    movePlayerAlongX(player_id, RIGHT)
+
+def moveUp(player_id):
+    movePlayerAlongY(player_id, UP)
+
+def moveDown(player_id):
+    movePlayerAlongY(player_id, DOWN)
+
+def movePlayerAlongX(player_id, direction):
     player = get_player_by_id(player_id)
-    x = player['x']
-    player['x'] = (x + 1 if x < SIZE-1 else x)
-    if [player['x'],player['y']] in blocks:
-        player['x'] = x
+    new_coords = getNewXCoords(player['x'], player['y'], direction)
+    player['x'] = new_coords[0]
+    player['y'] = new_coords[1]
+    
+def movePlayerAlongY(player_id, direction):
+    player = get_player_by_id(player_id)
+    new_coords = getNewYCoords(player['x'], player['y'], direction)
+    player['x'] = new_coords[0]
+    player['y'] = new_coords[1]
+
+def getNewXCoords(curr_x, curr_y, direction):
+
+    # get proposed coords
+    new_x = curr_x
+    new_y = curr_y
+
+    if direction == LEFT:
+        new_x = (curr_x - 1 if curr_x > 0 else curr_x)
+
+    elif direction == RIGHT:
+        new_x = (curr_x + 1 if curr_x < SIZE-1 else curr_x)
+
+    # check for goal or block
+    if [new_x, new_y] != goal and [new_x,new_y] in blocks:
+        return [curr_x, curr_y]
+
+    return [new_x, new_y]
+    
+def getNewYCoords(curr_x, curr_y, direction):
+    
+    # get proposed coords
+    new_x = curr_x
+    new_y = curr_y
+    
+    if direction == DOWN:
+        new_y = (curr_y + 1 if curr_y < SIZE-1 else curr_y)
+        
+    elif direction == UP:
+        new_y = (curr_y - 1 if curr_y > 0 else curr_y)
+        
+    # check for goal or block
+    if [new_x, new_y] != goal and [new_x,new_y] in blocks:
+        return [curr_x, curr_y]
+    
+    return [new_x, new_y]
 
 if __name__=="__main__":
 
     player_id = 1
 
-    player_start = [random.randint(0,SIZE-1), random.randint(0,SIZE-1)]
     for i in range(1, PLAYERS+1):
-        player = {"id": i, "name": "", "x": player_start[0], "y": player_start[1]}
+        player = {"id": i, "name": "", "x": random.randint(0,SIZE-1), "y": random.randint(0,SIZE-1)}
         players.append(player)
 
     for i in range(BLOCKS):
@@ -144,18 +182,13 @@ if __name__=="__main__":
         if get_player_by_location([x,y]) == None:
             blocks.append([x,y])
 
-    
-
-    while True:
-    	
-    	display()
         
-        while(1):
-                i=getch()
-                if i!='':break
-                
+    while True:
+
+        display()
+        
         # blocking action
-        k = ord(i)
+        k = ord(getch())
 
         if k == 3:                  # ctrl-c to quit
             break
