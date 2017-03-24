@@ -98,7 +98,7 @@ def display():
                 gameboard += " "
             gameboard += "|"
         gameboard += "\n"
-    os.system('clear')
+    os.system('clear') # moved this down here to further minimize redraw time
     print(gameboard)
 
 def moveUp(player_id):
@@ -157,13 +157,13 @@ if __name__=="__main__":
         # blocking action
         k = ord(i)
 
-        if k == 3:                  # ctrl-c
+        if k == 3:                  # ctrl-c to quit
             break
-        elif k == 65:               # arrows
+        elif k == 119:              # w
             moveUp(player_id)
-        elif k == 66:
+        elif k == 122:              # z
             moveDown(player_id)
-        elif k == 67:
+        elif k == 115:              # s
             moveRight(player_id)
-        elif k == 68:
+        elif k == 97:               # a
             moveLeft(player_id)
