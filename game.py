@@ -23,7 +23,8 @@ SIZE            = 50
 NUM_BLOCKS      = (SIZE * SIZE) / 10
 NUM_PLAYERS     = 2
 GOAL_SYMBOL     = '$'
-BLOCK_SYMBOL    = '#'
+BLOCK_SYMBOL    = ' '
+CELL_SEPARATOR  = ' '    # Originally '|' as seen above
 
 players         = []
 goal            = []
@@ -36,9 +37,16 @@ class directions:
     RIGHT       = 3
 
 class colors:
+		   # Formatting goes: <style>;<fg color>;<bgcolor>
+                   # so see all, try:
+		   # for num in range(0,110):
+                   # print "{0}: \033[{0}m Sample text \033[0m".format(num)
+		   # also see http://pueblo.sourceforge.net/doc/manual/ansi_color_codes.html
+		   # for info on restoring defaults
     BACKGROUND  = '\033[0;47m'
-    PLAYER      = '\033[34m'
-    GOAL        = '\033[91m'
+    BLOCK	= '\033[1;30;100m'
+    PLAYER      = '\033[33;44m'
+    GOAL        = '\033[1;92;41m'
     ENDC        = '\033[0m'
 
 #----------------------#
@@ -183,7 +191,7 @@ def display():
 
     gameboard = ""
     for y in range(SIZE):
-        gameboard += "|"
+        gameboard += CELL_SEPARATOR
         for x in range(SIZE):
             player = get_player_by_location([x, y])
             if player != None:
@@ -191,10 +199,10 @@ def display():
             elif [x, y] == goal:
                 gameboard += colors.GOAL + GOAL_SYMBOL + colors.ENDC
             elif [x, y] in blocks:
-                gameboard += BLOCK_SYMBOL
+                gameboard += colors.BLOCK + BLOCK_SYMBOL + colors.ENDC
             else:
                 gameboard += " "
-            gameboard += "|"
+            gameboard += CELL_SEPARATOR
         gameboard += "\n"
     os.system('clear') # moved this down here to further minimize redraw time
 
